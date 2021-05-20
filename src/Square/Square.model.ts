@@ -1,7 +1,7 @@
 export interface SquareProps {
   value: TicTacToeValues | null,
-  onClick(): any,
-};
+  onClick(): unknown,
+}
 
 export enum TicTacToeValues {
   X = 'X',

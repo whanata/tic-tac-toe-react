@@ -1,8 +1,7 @@
-import React from 'react';
 import './Square.css';
 import { SquareProps } from './Square.model';
 
-export function Square(props: SquareProps) {
+export function Square(props: SquareProps): JSX.Element {
   return (
     <button
       className="square"
