@@ -16,6 +16,7 @@ export function Game(): JSX.Element {
   const [nextValue, setNextValue] = useState<TicTacToeValues>(TicTacToeValues.X);
   const [winner, setWinner] = useState<TicTacToeValues | null>(null);
   const [status, setStatus] = useState('');
+  const [moves, setMoves] = useState<ReadonlyArray<JSX.Element>>([]);
 
   const onSquareClick = useCallback(
     (value: number) => {
@@ -35,6 +36,24 @@ export function Game(): JSX.Element {
           })
         }
       ]);
+
+      setMoves(
+        history.map(
+          (step, move) => {
+            const description = move ? `Go to move #${move}` : 'Go to game state';
+
+            return (
+              <li>
+                <button onClick={() => jumpTo(move)}>{description}</button>
+              </li>
+            )
+          }
+        )
+      );
+
+      function jumpTo(index: number) {
+        setCurrentHistory(history[index]);
+      }
 
       if (nextValue === TicTacToeValues.X) {
         setNextValue(TicTacToeValues.O);
@@ -96,7 +115,7 @@ export function Game(): JSX.Element {
       </div>
       <div className="game-info">
         <div>{status}</div>
-        <ol>{/* TODO */}</ol>
+        <ol>{moves}</ol>
       </div>
     </div>
   );
