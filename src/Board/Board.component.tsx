@@ -1,74 +1,47 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Square, TicTacToeValues } from '../Square';
 import './Board.css';
-import { BoardProps, BoardState } from './Board.model';
+import { BoardProps } from './Board.model';
 
-export class Board extends React.Component<BoardProps, BoardState> {
-  constructor(props: BoardProps) {
-    super(props);
-    this.state = {
-      squares: Array(9).fill(null),
-      nextValue: TicTacToeValues.X,
-      winner: null,
-    }
-  }
+export function Board(props: BoardProps) {
+  const [squares, setSquares] = useState<ReadonlyArray<TicTacToeValues | null>>(Array(9).fill(null));
+  const [nextValue, setNextValue] = useState<TicTacToeValues>(TicTacToeValues.X);
+  const [winner, setWinner] = useState<TicTacToeValues | null>(null);
+  const [status, setStatus] = useState('');
 
-  renderSquare(value: number) {
+  const clickSquare = useCallback(
+    (value: number) => {
+      if (winner !== null || squares[value]) {
+        setWinner(winner);
+        return;
+      }
+      setSquares(
+        squares.map((square, index) => {
+          if (index === value) {
+            return nextValue;
+          }
+          return square;
+        })
+      );
+
+      if (nextValue === TicTacToeValues.X) {
+        setNextValue(TicTacToeValues.O);
+      } else {
+        setNextValue(TicTacToeValues.X);
+      }
+    },
+    [squares, nextValue, winner]
+  );
+
+  function renderSquare(value: number) {
     return <Square
-      value={this.state.squares[value]}
-      onClick={this.handleSquareClick.bind(this, value)}
+      value={squares[value]}
+      key={value}
+      onClick={() => clickSquare(value)}
     />;
   }
 
-  render() {
-    let status;
-
-    const winner = this.calculateWinner(this.state.squares);
-
-    if (winner) {
-      status = `Winner: ${winner}`;
-    } else {
-      status = `Next player: ${this.state.nextValue}`;
-    }
-
-    return (
-      <div>
-        <div className="status">{status}</div>
-        <div className="board-row">
-          {this.renderSquare(0)}
-          {this.renderSquare(1)}
-          {this.renderSquare(2)}
-        </div>
-        <div className="board-row">
-          {this.renderSquare(3)}
-          {this.renderSquare(4)}
-          {this.renderSquare(5)}
-        </div>
-        <div className="board-row">
-          {this.renderSquare(6)}
-          {this.renderSquare(7)}
-          {this.renderSquare(8)}
-        </div>
-      </div>
-    );
-  }
-
-  handleSquareClick(value: number) {
-    const squares = this.state.squares.slice();
-    const winner = this.calculateWinner(squares);
-    if (winner !== null || squares[value]) {
-      this.setState({...this.state, winner});
-      return;
-    }
-    squares[value] = this.state.nextValue;
-    if (this.state.nextValue === TicTacToeValues.X) {
-      this.setState({squares, nextValue: TicTacToeValues.O});
-    } else {
-      this.setState({squares, nextValue: TicTacToeValues.X});
-    }
-  }
-
-  calculateWinner(squares: ReadonlyArray<TicTacToeValues | null>) {
+  function calculateWinner(squares: ReadonlyArray<TicTacToeValues | null>) {
     const lines = [
       [0, 1, 2],
       [3, 4, 5],
@@ -87,4 +60,38 @@ export class Board extends React.Component<BoardProps, BoardState> {
     }
     return null;
   }
+
+  useEffect(
+    () => {
+      setWinner(calculateWinner(squares));
+
+      if (winner) {
+        setStatus(`Winner: ${winner}`);
+      } else {
+        setStatus(`Next player: ${nextValue}`);
+      }
+    },
+    [winner, nextValue, squares]
+  );
+
+  return (
+    <div>
+      <div className="status">{status}</div>
+      <div className="board-row">
+        {renderSquare(0)}
+        {renderSquare(1)}
+        {renderSquare(2)}
+      </div>
+      <div className="board-row">
+        {renderSquare(3)}
+        {renderSquare(4)}
+        {renderSquare(5)}
+      </div>
+      <div className="board-row">
+        {renderSquare(6)}
+        {renderSquare(7)}
+        {renderSquare(8)}
+      </div>
+    </div>
+  );
 }
