@@ -5,4 +5,5 @@ export interface GameProps {}
 
 export interface GameHistory {
   squares: ReadonlyArray<TicTacToeValues | null>
+  nextValue: TicTacToeValues;
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Board } from '../Board';
 import { TicTacToeValues } from '../Square';
 import './Game.css';
@@ -9,6 +9,7 @@ export function Game(): JSX.Element {
     [
       {
         squares: Array(9).fill(null),
+        nextValue: TicTacToeValues.X,
       }
     ]
   );
@@ -18,51 +19,65 @@ export function Game(): JSX.Element {
   const [status, setStatus] = useState('');
   const [moves, setMoves] = useState<ReadonlyArray<JSX.Element>>([]);
 
-  const onSquareClick = useCallback(
-    (value: number) => {
-      if (winner !== null || currentHistory.squares[value]) {
-        setWinner(winner);
-        return;
-      }
+  function onSquareClick(value: number){
+    if (winner !== null || currentHistory.squares[value]) {
+      setWinner(winner);
+      return;
+    }
 
-      setHistory([
-        ...history,
-        {
-          squares: currentHistory.squares.map((square, index) => {
-            if (index === value) {
-              return nextValue;
-            }
-            return square;
-          })
-        }
-      ]);
-
-      setMoves(
-        history.map(
-          (step, move) => {
-            const description = move ? `Go to move #${move}` : 'Go to game state';
-
-            return (
-              <li>
-                <button onClick={() => jumpTo(move)}>{description}</button>
-              </li>
-            )
+    setHistory([
+      ...history,
+      {
+        squares: currentHistory.squares.map((square, index) => {
+          if (index === value) {
+            return nextValue;
           }
-        )
-      );
-
-      function jumpTo(index: number) {
-        setCurrentHistory(history[index]);
+          return square;
+        }),
+        nextValue,
       }
+    ]);
 
-      if (nextValue === TicTacToeValues.X) {
-        setNextValue(TicTacToeValues.O);
-      } else {
-        setNextValue(TicTacToeValues.X);
-      }
-    },
-    [nextValue, winner, currentHistory, history]
-  );
+    setMoves(
+      history.map(
+        (step, move) => {
+          console.log(move);
+          const description = move ? `Go to move #${move}` : 'Go to game state';
+
+          return (
+            <li>
+              <button onClick={() => jumpTo(move)}>{description}</button>
+            </li>
+          )
+        }
+      )
+    );
+
+    if (nextValue === TicTacToeValues.X) {
+      setNextValue(TicTacToeValues.O);
+    } else {
+      setNextValue(TicTacToeValues.X);
+    }
+  }
+
+  function jumpTo(index: number) {
+    setCurrentHistory(history[index]);
+    setMoves(
+      moves.filter(
+        (move, moveIndex) => {
+          return (moveIndex <= index);
+        }
+      )
+    )
+    setHistory(
+      history.filter(
+        (historyMove, historyIndex) => {
+          return (historyIndex <= index);
+        }
+      )
+    )
+    setNextValue(history[index].nextValue === TicTacToeValues.X ? TicTacToeValues.O : TicTacToeValues.X);
+  }
 
   useEffect(
     () => {
